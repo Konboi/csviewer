@@ -1,0 +1,19 @@
+memo = "eafd96d2fc1622aa9e9cc1a60e0dc9b85ca37e9545beeb914e66478732a63a62"
+
+[[projects]]
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/olekukonko/tablewriter"
+  packages = ["."]
+  revision = "febf2d34b54a69ce7530036c7503b1c9fbfdf0bb"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/soh335/sliceflag"
+  packages = ["."]
+  revision = "d2d28a5acab8b2ad159a74b65288bf1218e43340"
