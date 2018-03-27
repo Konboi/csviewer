@@ -7,12 +7,13 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/soh335/sliceflag"
 )
 
 func main() {
-	var path, printColumns string
+	var path, printColumns, sort string
 	var limit int
 	var filters []string
 
@@ -22,6 +23,8 @@ func main() {
 	flag.IntVar(&limit, "l", 0, "set max display rows num")
 	flag.StringVar(&printColumns, "columns", "", "print specify columns")
 	flag.StringVar(&printColumns, "c", "", "print specify columns")
+	flag.StringVar(&sort, "sort", "", "sort by set value\nex) id desc/ hoge_id asc")
+	flag.StringVar(&sort, "s", "", "sort by set value\nex) id desc/ hoge_id asc")
 	sliceflag.StringVar(flag.CommandLine, &filters, "f", []string{}, "filter")
 	sliceflag.StringVar(flag.CommandLine, &filters, "filter", []string{}, "filter")
 	flag.Parse()
@@ -37,7 +40,7 @@ func main() {
 	}
 
 	viewer := newCsviwer(columns, rows, printColumns, filters, limit)
-	viewer.Print()
+	viewer.Print(parseSort(sort))
 }
 
 func loadData(path string) (io.Reader, error) {
@@ -78,4 +81,25 @@ func convertData(data io.Reader) ([]string, [][]string, error) {
 	}
 
 	return column, rows, nil
+}
+
+func parseSort(sort string) *sortOption {
+	_sort := strings.ToUpper(sort)
+	if !strings.Contains(_sort, "ASC") && !strings.Contains(_sort, "DESC") {
+		return nil
+	}
+
+	_sorts := strings.Split(sort, " ")
+	if len(_sorts) != 2 {
+		return nil
+	}
+
+	for i, s := range _sorts {
+		_sorts[i] = strings.TrimSpace(s)
+	}
+
+	return &sortOption{
+		column:   _sorts[0],
+		sortType: strings.ToUpper(_sorts[1]),
+	}
 }

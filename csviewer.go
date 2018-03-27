@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -25,6 +26,75 @@ type printInfo struct {
 }
 
 type funcFilter func(string) bool
+
+type sortOption struct {
+	column   string
+	sortType string
+}
+
+func newSortData(data map[int]string, sortType string) *sortData {
+	d := &sortData{
+		data:     data,
+		sortType: strings.ToUpper(sortType),
+	}
+
+	for k := range data {
+		d.index = append(d.index, k)
+	}
+
+	sort.Ints(d.index)
+
+	return d
+}
+
+type sortData struct {
+	data     map[int]string
+	index    []int
+	sortType string
+}
+
+func (sd *sortData) Len() int {
+	return len(sd.data)
+}
+
+func (sd *sortData) Less(i, j int) bool {
+	iData := sd.data[i]
+	jData := sd.data[j]
+
+	iVal, errI := strconv.Atoi(iData)
+	jVal, errJ := strconv.Atoi(jData)
+	if errI != nil || errJ != nil {
+		// iData and jData: string
+		if errI != nil && errJ != nil {
+			sorted := sort.StringsAreSorted([]string{iData, jData})
+
+			if sd.sortType == "DESC" {
+				sorted = !sorted
+			}
+
+			return sorted
+		}
+		// iData is number but jData is maybe empty
+		if errI == nil && errJ != nil {
+			jVal = 0
+		}
+		// jData is number but iData is maybe empty
+		if errI != nil && errJ == nil {
+			iVal = 0
+		}
+	}
+
+	if sd.sortType == "DESC" {
+		return iVal > jVal
+	}
+
+	return iVal < jVal // ASC
+}
+
+func (sd *sortData) Swap(i, j int) {
+	sd.index[i], sd.index[j] = sd.index[j], sd.index[i]
+	sd.data[i], sd.data[j] = sd.data[j], sd.data[i]
+}
 
 func newCsviwer(columns []string, rows [][]string, printColumns string, filters []string, limit int) *Csviewer {
 	return &Csviewer{
@@ -131,8 +201,10 @@ func parseFilters(filters []string) map[string]funcFilter {
 	return funcFilters
 }
 
-func (v *Csviewer) Print() {
+func (v *Csviewer) Print(opt *sortOption) {
 	var printRows [][]string
+	sortIndexAndValue := make(map[int]string)
+	var sortData *sortData
 
 	count := 0
 	for i, rowMap := range v.rowsMap {
@@ -140,6 +212,10 @@ func (v *Csviewer) Print() {
 			var row []string
 			for _, j := range v.printInfo.printColumnIndex {
 				row = append(row, v.rows[i][j])
+
+				if opt != nil && opt.column == v.printInfo.printColumns[j] {
+					sortIndexAndValue[i] = v.rows[i][j]
+				}
 			}
 			printRows = append(printRows, row)
 			count++
@@ -150,9 +226,22 @@ func (v *Csviewer) Print() {
 		}
 	}
 
+	if opt != nil {
+		sortData = newSortData(sortIndexAndValue, opt.sortType)
+		sort.Sort(sortData)
+	}
+
 	t := tablewriter.NewWriter(os.Stdout)
 	t.SetHeader(v.printInfo.printColumns)
-	t.AppendBulk(printRows)
+	if opt != nil {
+		rows := [][]string{}
+		for _, i := range sortData.index {
+			rows = append(rows, printRows[i])
+		}
+		t.AppendBulk(rows)
+	} else {
+		t.AppendBulk(printRows)
+	}
 	t.Render()
 }
 
