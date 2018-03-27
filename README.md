@@ -90,12 +90,42 @@ set display conition.
 |  5 | d    | ddd@fuga.hgoe  | 123456789 |        |
 ```
 
+### Sort Option
+
+```
+ $ csviewer -p _example/example.csv -s 'phone asc'
++-----+-------+-----------------+-----------+--------+
+| ID  | NAME  |      MAIL       |   PHONE   | ADRESS |
++-----+-------+-----------------+-----------+--------+
+|   3 | c     |                 |           |  22222 |
+|   2 | b     | bbb@hoge.fuga   |     12345 |        |
+|   1 | a     | aaaa@hoge.fuga  |    123456 | 111111 |
+|  10 | e     | eeeee@fuga.hgoe |    654321 |        |
+|   5 | d     | ddd@fuga.hgoe   | 123456789 |        |
+| 222 | asdfg | asdfg@fuga.hgoe | 987654321 |        |
++-----+-------+-----------------+-----------+--------+
+```
+
+```
+ $ csviewer -p _example/example.csv -s 'mail desc'
++-----+-------+-----------------+-----------+--------+
+| ID  | NAME  |      MAIL       |   PHONE   | ADRESS |
++-----+-------+-----------------+-----------+--------+
+|  10 | e     | eeeee@fuga.hgoe |    654321 |        |
+|   5 | d     | ddd@fuga.hgoe   | 123456789 |        |
+|   2 | b     | bbb@hoge.fuga   |     12345 |        |
+| 222 | asdfg | asdfg@fuga.hgoe | 987654321 |        |
+|   1 | a     | aaaa@hoge.fuga  |    123456 | 111111 |
+|   3 | c     |                 |           |  22222 |
++-----+-------+-----------------+-----------+--------+
+```
+
 # Useage
 
 
 ```
-$ csviewer --help
-Usage of ./csviewer:
+ $ csviewer --help
+Usage of csviewer:
   -c string
         print specify columns
   -columns string
@@ -112,9 +142,15 @@ Usage of ./csviewer:
         set csv file path
   -path string
         set csv file path
+  -s string
+        sort by set value
+        ex) id desc/ hoge_id asc
+  -sort string
+        sort by set value
+        ex) id desc/ hoge_id asc
 ```
 
 # TODO
 
-- [ ] Order option
+- [x] Order option
 - [ ] Set multi filters in one column
