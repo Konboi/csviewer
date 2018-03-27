@@ -1,4 +1,8 @@
 
-[[dependencies]]
+[[constraint]]
   branch = "master"
   name = "github.com/soh335/sliceflag"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/olekukonko/tablewriter"
