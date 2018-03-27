@@ -16,6 +16,7 @@ func main() {
 	var path, printColumns, sort string
 	var limit int
 	var filters []string
+	var isFiltersOr bool
 
 	flag.StringVar(&path, "path", "", "set csv file path")
 	flag.StringVar(&path, "p", "", "set csv file path")
@@ -27,6 +28,7 @@ func main() {
 	flag.StringVar(&sort, "s", "", "sort by set value\nex) id desc/ hoge_id asc")
 	sliceflag.StringVar(flag.CommandLine, &filters, "f", []string{}, "filter")
 	sliceflag.StringVar(flag.CommandLine, &filters, "filter", []string{}, "filter")
+	flag.BoolVar(&isFiltersOr, "or", false, "filter logical operator")
 	flag.Parse()
 
 	d, err := loadData(path)
@@ -39,7 +41,7 @@ func main() {
 		log.Fatal("error convet data", err.Error())
 	}
 
-	viewer := newCsviwer(columns, rows, printColumns, filters, limit)
+	viewer := newCsviwer(columns, rows, printColumns, filters, limit, isFiltersOr)
 	viewer.Print(parseSort(sort))
 }
 

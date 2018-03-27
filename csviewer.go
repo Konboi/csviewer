@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/Knetic/govaluate"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -14,10 +16,10 @@ type Csviewer struct {
 	columns     []string
 	rows        [][]string
 	printInfo   printInfo
-	rowsMap     []map[string]string
+	rowsMap     []map[string]interface{}
 	filters     []string
-	funcFilters map[string]funcFilter
 	limit       int
+	isFiltersOr bool
 }
 
 type printInfo struct {
@@ -25,7 +27,7 @@ type printInfo struct {
 	printColumnIndex []int
 }
 
-type funcFilter func(string) bool
+type funcFilter func(map[string]interface{}) bool
 
 type sortOption struct {
 	column   string
@@ -96,29 +98,38 @@ func (sd *sortData) Swap(i, j int) {
 	sd.data[i], sd.data[j] = sd.data[j], sd.data[i]
 }
 
-func newCsviwer(columns []string, rows [][]string, printColumns string, filters []string, limit int) *Csviewer {
+func newCsviwer(columns []string, rows [][]string, printColumns string, filters []string, limit int, isFiltersOr bool) *Csviewer {
 	return &Csviewer{
-		columns:     columns,
-		rows:        rows,
-		printInfo:   parsePrintColumns(columns, printColumns),
-		rowsMap:     sliceToMap(columns, rows),
-		filters:     filters,
-		funcFilters: parseFilters(filters),
+		columns:   columns,
+		rows:      rows,
+		printInfo: parsePrintColumns(columns, printColumns),
+		rowsMap:   sliceToMap(columns, rows),
+		filters:   filters,
+		//funcFilters: evalFilters(filters),
 		limit:       limit,
+		isFiltersOr: isFiltersOr,
 	}
 }
 
-func sliceToMap(columns []string, rows [][]string) []map[string]string {
+func sliceToMap(columns []string, rows [][]string) []map[string]interface{} {
 	// id,name,email
 	// 1, foo, foo@email.com
 	// 2, fuga, fuga@email.com
 	// ↓
 	// {"id": "1", "name", "foo", "email": "foo@email.com"}{"id": "2", "name", "fuga", "email": "fuga@email.com"}
-	data := make([]map[string]string, 0, len(rows))
+	data := make([]map[string]interface{}, 0, len(rows))
 	for _, row := range rows {
-		rowMap := make(map[string]string)
+		rowMap := make(map[string]interface{})
+		var val interface{}
 		for i, column := range columns {
-			rowMap[column] = row[i]
+			tmpval, err := strconv.ParseFloat(row[i], 64)
+			if err == nil {
+				val = tmpval
+			} else {
+				val = row[i]
+			}
+
+			rowMap[column] = val
 		}
 		data = append(data, rowMap)
 	}
@@ -150,57 +161,6 @@ func parsePrintColumns(columns []string, showColumns string) printInfo {
 	return printInfo{prints, index}
 }
 
-func parseFilters(filters []string) map[string]funcFilter {
-	funcFilters := map[string]funcFilter{}
-	for _, f := range filters {
-		token := strings.SplitN(f, " ", 3)
-		if len(token) < 3 {
-			log.Fatal("filter format is invalid: ", f)
-		}
-		key := token[0]
-		switch token[1] {
-		case ">", ">=", "<=", "<":
-			r, err := strconv.ParseFloat(token[2], 64)
-			if err != nil {
-				log.Fatalf("error filter value column:'%s' check value:'%s'\n", key, token[2])
-			}
-
-			funcFilters[key] = func(val string) bool {
-				if val == "" {
-					return false
-				}
-
-				num, err := strconv.ParseFloat(val, 64)
-				if err != nil {
-					log.Printf("error check rows value:'%s'\n", val)
-					return false
-				}
-				switch token[1] {
-				case ">":
-					return num > r
-				case ">=":
-					return num >= r
-				case "<=":
-					return num <= r
-				case "<":
-					return num < r
-				default:
-					return false
-				}
-			}
-		case "==":
-			funcFilters[key] = func(val string) bool {
-				return val == token[2]
-			}
-		case "!=":
-			funcFilters[key] = func(val string) bool {
-				return val != token[2]
-			}
-		}
-	}
-	return funcFilters
-}
-
 func (v *Csviewer) Print(opt *sortOption) {
 	var printRows [][]string
 	sortIndexAndValue := make(map[int]string)
@@ -211,10 +171,10 @@ func (v *Csviewer) Print(opt *sortOption) {
 		if v.filter(rowMap) {
 			var row []string
 			for _, j := range v.printInfo.printColumnIndex {
-				row = append(row, v.rows[i][j])
+				row = append(row, fmt.Sprint(v.rows[i][j]))
 
 				if opt != nil && opt.column == v.printInfo.printColumns[j] {
-					sortIndexAndValue[i] = v.rows[i][j]
+					sortIndexAndValue[i] = fmt.Sprint(v.rows[i][j])
 				}
 			}
 			printRows = append(printRows, row)
@@ -245,15 +205,32 @@ func (v *Csviewer) Print(opt *sortOption) {
 	t.Render()
 }
 
-func (v *Csviewer) filter(rowMap map[string]string) bool {
+func (v *Csviewer) filter(rowMap map[string]interface{}) bool {
+	values := make(map[string]interface{}, 0)
 
-	print := true
-	for key, funcFilter := range v.funcFilters {
-		if !funcFilter(rowMap[key]) {
-			print = false
-			break
-		}
+	for key, val := range rowMap {
+		values[key] = val
 	}
 
-	return print
+	filters := make([]string, 0)
+
+	for _, f := range v.filters {
+		filters = append(filters, f)
+	}
+
+	op := " && "
+	if v.isFiltersOr {
+		op = " || "
+	}
+
+	expression, err := govaluate.NewEvaluableExpression(strings.Join(filters, op))
+	if err != nil {
+		log.Fatal(err)
+	}
+	result, err2 := expression.Evaluate(values)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+
+	return result.(bool)
 }
