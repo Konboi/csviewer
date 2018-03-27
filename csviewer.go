@@ -100,12 +100,11 @@ func (sd *sortData) Swap(i, j int) {
 
 func newCsviwer(columns []string, rows [][]string, printColumns string, filters []string, limit int, isFiltersOr bool) *Csviewer {
 	return &Csviewer{
-		columns:   columns,
-		rows:      rows,
-		printInfo: parsePrintColumns(columns, printColumns),
-		rowsMap:   sliceToMap(columns, rows),
-		filters:   filters,
-		//funcFilters: evalFilters(filters),
+		columns:     columns,
+		rows:        rows,
+		printInfo:   parsePrintColumns(columns, printColumns),
+		rowsMap:     sliceToMap(columns, rows),
+		filters:     filters,
 		limit:       limit,
 		isFiltersOr: isFiltersOr,
 	}
