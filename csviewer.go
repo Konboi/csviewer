@@ -155,7 +155,7 @@ func parseFilters(filters []string) map[string]funcFilter {
 	for _, f := range filters {
 		token := strings.SplitN(f, " ", 3)
 		if len(token) < 3 {
-			log.Fatalf("filter format is invalid", f)
+			log.Fatal("filter format is invalid: ", f)
 		}
 		key := token[0]
 		switch token[1] {
