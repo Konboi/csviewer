@@ -69,7 +69,7 @@ set display rows num.
 
 ### Filter Option
 
-set display conition.
+set display condition.
 
 ```
  $ ./csviewer -p _example/example.csv -f "id > 2"
@@ -120,7 +120,7 @@ set display conition.
 +-----+-------+-----------------+-----------+--------+
 ```
 
-# Useage
+# Usage
 
 
 ```
