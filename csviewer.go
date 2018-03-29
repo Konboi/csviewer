@@ -226,9 +226,9 @@ func (v *Csviewer) filter(rowMap map[string]interface{}) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
-	result, err2 := expression.Evaluate(values)
-	if err2 != nil {
-		log.Fatal(err2)
+	result, err := expression.Evaluate(values)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return result.(bool)
