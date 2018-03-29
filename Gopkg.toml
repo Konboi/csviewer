@@ -6,3 +6,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/olekukonko/tablewriter"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/Knetic/govaluate"

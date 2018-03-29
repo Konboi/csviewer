@@ -90,6 +90,55 @@ set display condition.
 |  5 | d    | ddd@fuga.hgoe  | 123456789 |        |
 ```
 
+### Multiple Filter Option
+
+#### And
+
+```
+$ ./csviewer -p _example/example.csv -f "id > 2 && id <= 10"
++----+------+-----------------+-----------+--------+
+| ID | NAME |      MAIL       |   PHONE   | ADRESS |
++----+------+-----------------+-----------+--------+
+|  3 | c    |                 |           |  22222 |
+|  5 | d    | ddd@fuga.hgoe   | 123456789 |        |
+| 10 | e    | eeeee@fuga.hgoe |    654321 |        |
++----+------+-----------------+-----------+--------+
+```
+
+```
+$ ./csviewer -p _example/example.csv -f "id > 2" -f "id <= 10"
++----+------+-----------------+-----------+--------+
+| ID | NAME |      MAIL       |   PHONE   | ADRESS |
++----+------+-----------------+-----------+--------+
+|  3 | c    |                 |           |  22222 |
+|  5 | d    | ddd@fuga.hgoe   | 123456789 |        |
+| 10 | e    | eeeee@fuga.hgoe |    654321 |        |
++----+------+-----------------+-----------+--------+
+```
+
+#### Or
+
+
+```
+$ ./csviewer -p _example/example.csv -f "name == 'c'" -f "name == 'd'" -or
++----+------+---------------+-----------+--------+
+| ID | NAME |     MAIL      |   PHONE   | ADRESS |
++----+------+---------------+-----------+--------+
+|  3 | c    |               |           |  22222 |
+|  5 | d    | ddd@fuga.hgoe | 123456789 |        |
++----+------+---------------+-----------+--------+
+```
+
+```
+$ ./csviewer -p _example/example.csv -f "name == 'c' || name == 'd'"
++----+------+---------------+-----------+--------+
+| ID | NAME |     MAIL      |   PHONE   | ADRESS |
++----+------+---------------+-----------+--------+
+|  3 | c    |               |           |  22222 |
+|  5 | d    | ddd@fuga.hgoe | 123456789 |        |
++----+------+---------------+-----------+--------+
+```
+
 ### Sort Option
 
 ```
@@ -153,4 +202,4 @@ Usage of csviewer:
 # TODO
 
 - [x] Order option
-- [ ] Set multi filters in one column
+- [x] Set multi filters in one column

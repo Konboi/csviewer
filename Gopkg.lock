@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  revision = "9aa49832a739dcd78a5542ff189fb82c3e423116"
+
+[[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
@@ -22,6 +28,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ce1cbb2d5d69d71dfee0ac5b24e4112dba4a8bce8548612971909666aa2f57be"
+  inputs-digest = "4856e1cf83e8528b717df75f9657a94b2755730a2891e8a0d46fa05fc4d2f90d"
   solver-name = "gps-cdcl"
   solver-version = 1
