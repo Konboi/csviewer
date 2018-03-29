@@ -205,6 +205,10 @@ func (v *Csviewer) Print(opt *sortOption) {
 }
 
 func (v *Csviewer) filter(rowMap map[string]interface{}) bool {
+	if len(v.filters) == 0 {
+		return true
+	}
+
 	values := make(map[string]interface{}, 0)
 
 	for key, val := range rowMap {
